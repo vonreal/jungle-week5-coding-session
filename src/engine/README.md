@@ -50,201 +50,628 @@
 - [pages.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/app/components/pages.js)
   - `h`
 
-## 서비스 흐름
+## 첫 화면이 뜨는 흐름
 
-아래는 사용자가 페이지를 열고, 질문에 답하고, 결과 화면에 도달할 때까지 실제로 어떤 엔진 함수들이 호출되는지 순서대로 적은 흐름입니다.
+아래는 `정글 성향 테스트` 시작 화면이 처음 뜰 때까지의 과정을,  
+함수와 변수 이름 기준으로 아주 자세히 적은 흐름입니다.
 
-### 1. 앱 시작
+### 1. 브라우저가 HTML을 읽음
 
-브라우저가 [index.html](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/index.html)을 열면 [src/main.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/main.js)가 실행됩니다.
+[index.html](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/index.html) 안에는 이 DOM이 있습니다.
 
-흐름:
+```html
+<div id="app"></div>
+```
+
+이 `#app`가 나중에 앱이 붙을 실제 자리입니다.
+
+이 시점에 중요한 값:
+
+- 실제 DOM 요소: `#app`
+- 아직 엔진 객체는 없음
+- 아직 `App()`도 실행 안 됨
+
+### 2. src/main.js 실행
+
+[src/main.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/main.js)
+
+```js
+import { mountApp } from "./app/bootstrap.js";
+
+mountApp();
+```
+
+여기서 실행되는 함수:
+
+- `mountApp()`
+
+### 3. mountApp() 안에서 root 변수 생성
+
+[src/app/bootstrap.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/app/bootstrap.js)
+
+```js
+export function mountApp() {
+  const root = document.querySelector("#app");
+  mountRoot(App, root);
+}
+```
+
+이 시점에 생기는 변수:
+
+- `root`
+  - 값: `document.querySelector("#app")`
+  - 의미: 실제 DOM을 붙일 위치
+
+이 시점의 호출:
+
+- `mountRoot(App, root)`
+
+즉 여기서 넘겨주는 값은:
+
+- `componentFn = App`
+- `container = root`
+- `props = {}`
+
+### 4. mountRoot() 안에서 rootComponent 생성
+
+[mountRoot.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/engine/core/mountRoot.js)
+
+```js
+export function mountRoot(componentFn, container, props = {}) {
+  const rootComponent = new FunctionComponent(componentFn, props, container);
+  rootComponent.mount();
+  return rootComponent;
+}
+```
+
+이 시점에 생기는 변수:
+
+- `componentFn`
+  - 값: `App`
+  - 의미: 나중에 실행할 루트 함수형 컴포넌트
+
+- `container`
+  - 값: `root`
+  - 의미: 실제 DOM을 붙일 위치
+
+- `props`
+  - 값: `{}`
+  - 의미: 루트 컴포넌트에 줄 입력값
+
+- `rootComponent`
+  - 값: `new FunctionComponent(App, {}, root)`
+  - 의미: App을 관리하는 엔진 객체
+
+### 5. FunctionComponent constructor 실행
+
+[FunctionComponent.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/engine/core/FunctionComponent.js)
+
+```js
+constructor(componentFn, props = {}, container) {
+  this.componentFn = componentFn;
+  this.props = props;
+  this.container = container;
+  this.hooks = [];
+  this.hookIndex = 0;
+  this.currentTree = null;
+  this.pendingEffects = [];
+}
+```
+
+이 시점에 `rootComponent` 안에 저장되는 값:
+
+- `this.componentFn`
+  - 값: `App`
+  - 의미: 실행할 함수
+
+- `this.props`
+  - 값: `{}`
+  - 의미: 컴포넌트 입력값
+
+- `this.container`
+  - 값: `root`
+  - 의미: 실제 DOM 자리
+
+- `this.hooks`
+  - 값: `[]`
+  - 의미: hook 값 저장소
+
+- `this.hookIndex`
+  - 값: `0`
+  - 의미: 이번 렌더에서 몇 번째 hook인지 세는 번호
+
+- `this.currentTree`
+  - 값: `null`
+  - 의미: 아직 렌더된 VDOM 없음
+
+- `this.pendingEffects`
+  - 값: `[]`
+  - 의미: 렌더 후 실행할 effect 목록
+
+즉 constructor가 끝난 직후 `rootComponent`는 대충 이런 상태입니다.
+
+```js
+{
+  componentFn: App,
+  props: {},
+  container: root,
+  hooks: [],
+  hookIndex: 0,
+  currentTree: null,
+  pendingEffects: []
+}
+```
+
+### 6. rootComponent.mount() 실행
+
+`mountRoot()`는 바로 아래 줄에서:
+
+```js
+rootComponent.mount();
+```
+
+를 실행합니다.
+
+`mount()`의 코드:
+
+```js
+mount() {
+  const tree = this.performRender();
+  render(tree, this.container);
+  this.currentTree = tree;
+  this.runEffects();
+}
+```
+
+여기서 생기는 변수:
+
+- `tree`
+  - 값: `this.performRender()`가 돌려준 VDOM 트리
+  - 의미: 지금 화면의 설계도
+
+### 7. performRender() 안에서 렌더 준비
+
+`performRender()`는 이 순서로 움직입니다.
+
+```js
+performRender() {
+  this.prepareToRender();
+
+  try {
+    this.currentTree = this.componentFn(this.props);
+    return this.currentTree;
+  } finally {
+    this.finishRender();
+  }
+}
+```
+
+먼저 `prepareToRender()` 실행:
+
+```js
+prepareToRender() {
+  this.hookIndex = 0;
+  this.pendingEffects = [];
+  setCurrentComponent(this);
+}
+```
+
+이 시점에 바뀌는 값:
+
+- `this.hookIndex = 0`
+  - 이유: 이번 렌더에서 hook 순서를 처음부터 다시 세야 해서
+
+- `this.pendingEffects = []`
+  - 이유: 이번 렌더에서 등록할 effect만 다시 모으기 위해서
+
+- `currentComponent = this`
+  - `setCurrentComponent(this)`가 runtime 전역 변수에 저장
+  - 의미: 지금 렌더 중인 컴포넌트는 `rootComponent`
+
+### 8. App() 실제 실행
+
+이제 `try` 안에서:
+
+```js
+this.currentTree = this.componentFn(this.props);
+```
+
+가 실행됩니다.
+
+여기서 실제 값 대입은:
+
+```js
+this.currentTree = App({});
+```
+
+와 같은 뜻입니다.
+
+즉, 이 시점에 `App()`이 처음 실행됩니다.
+
+### 9. App() 안에서 appState 생성
+
+[src/app/bootstrap.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/app/bootstrap.js)의 `App()` 첫 부분:
+
+```js
+const [appState, setAppState] = useState({
+  screen: "start",
+  nickname: "",
+  currentIndex: 0,
+  answers: [],
+});
+```
+
+이 시점에 useState가 하는 일:
+
+- `component = getCurrentComponent()`
+  - 값: `rootComponent`
+
+- `currentIndex = component.hookIndex`
+  - 값: `0`
+
+- `component.hooks[0]`
+  - 처음 렌더라 비어 있으므로 초기값 저장
+
+그래서 hooks 배열은 이렇게 됩니다.
+
+```js
+rootComponent.hooks = [
+  {
+    screen: "start",
+    nickname: "",
+    currentIndex: 0,
+    answers: []
+  }
+]
+```
+
+그리고 반환값:
+
+- `appState`
+  - 값: hooks[0] 안의 state 객체
+
+- `setAppState`
+  - 값: hooks[0]을 나중에 바꾸는 함수
+
+그리고 마지막에:
+
+- `component.hookIndex += 1`
+
+그래서 이제:
+
+```js
+rootComponent.hookIndex === 1
+```
+
+### 10. App() 안에서 calculated 생성
+
+다음 부분:
+
+```js
+const calculated = useMemo(() => {
+  return evaluateQuizResult({
+    questions: quizQuestions,
+    answers: appState.answers,
+    axes: quizConfig.axes,
+    results: quizResults,
+  });
+}, [appState.answers]);
+```
+
+이 시점:
+
+- `currentIndex = rootComponent.hookIndex`
+  - 값: `1`
+
+- `component.hooks[1]`
+  - 처음 렌더라서 아직 없음
+
+그래서 `factory()` 실행:
+
+```js
+evaluateQuizResult(...)
+```
+
+여기서 나오는 값:
+
+- `scores`
+- `directions`
+- `result`
+
+그리고 hooks 배열 1번 칸에 저장:
+
+```js
+rootComponent.hooks[1] = {
+  type: "memo",
+  dependencies: [appState.answers],
+  value: {
+    scores: ...,
+    directions: ...,
+    result: ...
+  }
+}
+```
+
+반환값:
+
+- `calculated`
+  - 값: memo에 저장된 `value`
+
+그리고:
+
+```js
+rootComponent.hookIndex === 2
+```
+
+### 11. App() 안에서 startConfig 생성
+
+다음 부분:
+
+```js
+const startConfig = {
+  ...quizConfig,
+  subtitle: quizConfig.subtitle || "정글 성향 테스트",
+  ctaLabel: quizConfig.ctaLabel || "나는 어떤 정글 동물일까?",
+};
+```
+
+이건 일반 지역 변수입니다.
+
+값:
+
+- `startConfig.title`
+- `startConfig.description`
+- `startConfig.subtitle`
+- `startConfig.ctaLabel`
+- `startConfig.axes`
+- `startConfig.totalQuestions`
+
+### 12. App() 안에서 이벤트 함수들 생성
+
+이제 `App()` 안에서 이런 함수들이 만들어집니다.
+
+- `handleStart`
+- `handleNicknameInput`
+- `handleNicknameSubmit`
+- `handleChoiceSelect`
+- `handleRestart`
+
+이 함수들은 지금 바로 실행되는 게 아니라,  
+나중에 버튼 클릭이나 입력 이벤트가 생겼을 때 실행됩니다.
+
+### 13. 첫 화면 분기 선택
+
+처음 렌더에서는:
+
+```js
+appState.screen === "start"
+```
+
+이므로 아래 분기로 들어갑니다.
+
+```js
+return StartPage({
+  config: startConfig,
+  onStart: handleStart,
+});
+```
+
+즉 `App()`이 반환하는 값은:
+
+- `StartPage(...)`가 만든 VDOM
+
+### 14. StartPage() 안에서 실제 시작 화면 VDOM 생성
+
+[pages.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/app/components/pages.js)의 `StartPage()`는 내부에서:
+
+- `HeaderLogo()`
+- `PrimaryButton(...)`
+- `AppShell(...)`
+
+를 사용합니다.
+
+그리고 결국 모두 [h.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/engine/vdom/h.js)의 `h()`로 VDOM 객체를 만듭니다.
+
+즉 이 단계에서 만들어지는 값:
+
+- `type`
+- `props`
+- `children`
+
+형태의 객체 트리
+
+이게 바로 `tree`입니다.
+
+### 15. performRender() 종료
+
+`try` 안에서:
+
+```js
+this.currentTree = this.componentFn(this.props);
+return this.currentTree;
+```
+
+가 끝나면:
+
+- `this.currentTree`
+  - 값: StartPage 기반 VDOM 트리
+
+- `return this.currentTree`
+  - 값: `tree`
+
+그리고 `finally`에서:
+
+```js
+this.finishRender();
+```
+
+실행
+
+### 16. finishRender() 실행
+
+`finishRender()`는:
+
+```js
+clearCurrentComponent();
+```
+
+를 호출합니다.
+
+이 시점:
+
+- `currentComponent = null`
+
+왜냐하면 렌더가 끝났으니
+“지금 렌더 중인 컴포넌트” 표시를 지워야 하기 때문입니다.
+
+### 17. render(tree, this.container) 실행
+
+다시 `mount()`로 돌아오면:
+
+```js
+render(tree, this.container);
+```
+
+실행
+
+현재 값:
+
+- `tree`
+  - StartPage VDOM 트리
+
+- `this.container`
+  - 실제 DOM 요소 `#app`
+
+첫 렌더이므로 `render()` 안에서는:
+
+1. `container.innerHTML = ""`
+2. `createElement(tree)`
+3. `container.appendChild(...)`
+
+### 18. createElement()가 실제 DOM 생성
+
+`createElement(vNode)`는 VDOM 한 개를 실제 DOM 한 개로 바꿉니다.
+
+즉:
+
+- `main`
+- `section`
+- `div.logo`
+- `h1`
+- `p`
+- `button`
+
+같은 실제 DOM 요소들이 순서대로 생성됩니다.
+
+이제 브라우저 화면에 보이는:
+
+- `JUNGLE TEST`
+- `정글 성향 테스트`
+- `당신은 정글에서 어떤 동물입니까?`
+- 버튼
+
+이 실제 DOM으로 붙습니다.
+
+### 19. currentTree 저장
+
+다시 `mount()`에서:
+
+```js
+this.currentTree = tree;
+```
+
+실행
+
+이제 `rootComponent.currentTree`에는
+“현재 화면의 VDOM 트리”가 저장되어 있습니다.
+
+이 값은 나중에 `update()`에서 이전 트리로 사용됩니다.
+
+### 20. runEffects() 실행
+
+마지막으로:
+
+```js
+this.runEffects();
+```
+
+실행
+
+첫 화면에서는 `useEffect`를 아직 안 쓰고 있으므로:
+
+- `this.pendingEffects = []`
+- 실행할 effect 없음
+
+그래서 여기서는 실제로 아무 일도 거의 안 일어납니다.
+
+## 첫 화면 직후 메모리 상태 요약
+
+첫 화면이 뜬 직후 중요한 값은 대충 이렇습니다.
+
+### root 변수
+
+```js
+root = document.querySelector("#app")
+```
+
+### rootComponent 내부 상태
+
+```js
+rootComponent.componentFn = App
+rootComponent.props = {}
+rootComponent.container = root
+rootComponent.hooks = [
+  {
+    screen: "start",
+    nickname: "",
+    currentIndex: 0,
+    answers: []
+  },
+  {
+    type: "memo",
+    dependencies: [[]],
+    value: {
+      scores: ...,
+      directions: ...,
+      result: ...
+    }
+  }
+]
+rootComponent.hookIndex = 2
+rootComponent.currentTree = StartPage VDOM 트리
+rootComponent.pendingEffects = []
+```
+
+### runtime 전역 상태
+
+```js
+currentComponent = null
+```
+
+## 첫 화면 한 줄 흐름
+
+정말 짧게만 적으면 아래 순서입니다.
 
 1. `mountApp()`
-2. `mountRoot(App, root)`
-3. `new FunctionComponent(App, props, root)`
-4. `rootComponent.mount()`
+2. `const root = document.querySelector("#app")`
+3. `mountRoot(App, root)`
+4. `const rootComponent = new FunctionComponent(App, {}, root)`
+5. `rootComponent.mount()`
+6. `performRender()`
+7. `prepareToRender()`
+8. `setCurrentComponent(rootComponent)`
+9. `App()`
+10. `useState()` -> hooks[0] 저장
+11. `useMemo()` -> hooks[1] 저장
+12. `StartPage()` -> VDOM 반환
+13. `finishRender()`
+14. `render(tree, root)`
+15. `createElement(tree)`
+16. 실제 DOM이 `#app`에 붙음
+17. `currentTree` 저장
+18. `runEffects()`
 
-관련 파일:
+## 다음 단계
 
-- [src/main.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/main.js)
-- [src/app/bootstrap.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/app/bootstrap.js)
-- [src/engine/core/mountRoot.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/engine/core/mountRoot.js)
-- [src/engine/core/FunctionComponent.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/engine/core/FunctionComponent.js)
-
-### 2. 첫 렌더
-
-`FunctionComponent.mount()` 안에서는 아래 순서로 실행됩니다.
-
-1. `performRender()`
-2. `prepareToRender()`
-3. `setCurrentComponent(this)`
-4. `App()` 실행
-5. `finishRender()`
-6. `render(tree, container)`
-7. `runEffects()`
-
-핵심:
-
-- `App()`이 실행되면서 화면에 필요한 VDOM을 만듭니다.
-- 그 VDOM은 `render()`를 통해 실제 DOM으로 붙습니다.
-
-### 3. App 안에서 state 읽기
-
-[src/app/bootstrap.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/app/bootstrap.js)의 `App()`은 아래 state를 `useState()`로 관리합니다.
-
-- `screen`
-- `nickname`
-- `currentIndex`
-- `answers`
-
-`useState()` 흐름:
-
-1. `getCurrentComponent()`
-2. `component.hookIndex` 확인
-3. `component.hooks[currentIndex]` 사용
-4. state 반환
-5. `setState` 반환
-
-즉, state는 함수 안이 아니라 `hooks 배열` 안에 저장됩니다.
-
-관련 파일:
-
-- [useState.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/engine/hooks/useState.js)
-- [runtime.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/engine/core/runtime.js)
-
-### 4. App 안에서 결과 계산
-
-`App()`은 `useMemo()`로 결과 계산을 캐싱합니다.
-
-실제 코드:
-
-- `evaluateQuizResult(...)`
-
-흐름:
-
-1. `useMemo(factory, [appState.answers])`
-2. answers가 바뀌면만 `factory()` 다시 실행
-3. `evaluateQuizResult()` 호출
-4. 내부에서 아래 순서 실행
-
-도메인 계산 순서:
-
-1. `accumulateScores()`
-2. `resolveDirections()`
-3. `findMatchingResult()`
-
-관련 파일:
-
-- [useMemo.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/engine/hooks/useMemo.js)
-- [quiz-logic.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/app/domain/quiz-logic.js)
-
-### 5. 화면 VDOM 만들기
-
-`App()`은 현재 `screen` 값에 따라 아래 페이지 함수 중 하나를 호출합니다.
-
-- `StartPage(...)`
-- `NicknamePage(...)`
-- `QuestionPage(...)`
-- `ResultPage(...)`
-
-이 페이지 함수들은 결국 모두 [h.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/engine/vdom/h.js)의 `h()`를 사용해서 VDOM 객체를 만듭니다.
-
-`h()` 흐름:
-
-1. `h(type, props, ...children)`
-2. `normalizeChild()`
-3. 필요하면 `createTextNode()`
-4. `{ type, props, children }` 객체 반환
-
-즉, 현재 앱 화면은 JSX 없이 직접 만든 객체 기반 VDOM입니다.
-
-### 6. 질문 화면에서 선택 버튼을 누르면
-
-질문 화면의 선택 버튼은 [pages.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/app/components/pages.js)의 `ChoiceButton()` 안에서 만들어집니다.
-
-버튼 클릭 후 실제 흐름:
-
-1. `onClick`
-2. `handleChoiceSelect(choice)`
-3. `setAppState(...)`
-4. `useState()` 내부 `setState`
-5. `component.hooks[currentIndex]` 값 변경
-6. `FunctionComponent.update()`
-
-### 7. update 후 다시 렌더
-
-`FunctionComponent.update()` 흐름:
-
-1. `previousTree = this.currentTree`
-2. `performRender()`
-3. `App()` 다시 실행
-4. 새 VDOM 생성
-5. `render(nextTree, container, previousTree)`
-6. `runEffects()`
-
-즉, state 변경 후 앱 전체 함수는 다시 실행되지만,
-실제 DOM은 diff/patch를 통해 필요한 부분만 수정됩니다.
-
-### 8. render -> diff -> patch
-
-[render.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/engine/render/render.js)에서 두 번째 렌더부터는 이전 트리와 새 트리를 같이 받습니다.
-
-흐름:
-
-1. `render(nextVNode, container, previousVNode)`
-2. `diffTrees(previousVNode, nextVNode)`
-3. `patch(container, previousVNode, nextVNode, 0)`
-
-`patch()`가 하는 일:
-
-- 새 노드면 추가
-- 사라진 노드면 제거
-- 타입 다르면 교체
-- 타입 같으면 `updateDomProps()`
-- children은 재귀적으로 계속 patch
-
-관련 파일:
-
-- [render.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/engine/render/render.js)
-- [diff.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/engine/render/diff.js)
-- [patch.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/engine/render/patch.js)
-- [createElement.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/engine/render/createElement.js)
-
-### 9. 결과 화면까지 가는 실제 흐름
-
-사용자가 마지막 질문까지 답하면 `handleChoiceSelect()` 안에서 `screen`이 `"result"`로 바뀝니다.
-
-그 다음 흐름:
-
-1. `setAppState(...)`
-2. `FunctionComponent.update()`
-3. `App()` 다시 실행
-4. `appState.screen === "result"` 분기 진입
-5. `ResultPage(...)` 호출
-6. `useMemo()`로 계산된 `calculated.result`, `calculated.directions` 전달
-7. `h()`로 결과 화면 VDOM 생성
-8. `render()` -> `diffTrees()` -> `patch()`
-9. 실제 결과 화면 DOM 갱신
-
-즉, 결과 화면도 별도 페이지 이동이 아니라 state 변경에 따른 재렌더링입니다.
-
-## 따라가기 좋은 순서
-
-처음 읽을 때는 아래 순서가 가장 좋습니다.
-
-1. [src/app/bootstrap.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/app/bootstrap.js)
-2. [src/app/components/pages.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/app/components/pages.js)
-3. [src/engine/core/mountRoot.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/engine/core/mountRoot.js)
-4. [src/engine/core/FunctionComponent.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/engine/core/FunctionComponent.js)
-5. [src/engine/hooks/useState.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/engine/hooks/useState.js)
-6. [src/engine/hooks/useMemo.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/engine/hooks/useMemo.js)
-7. [src/engine/vdom/h.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/engine/vdom/h.js)
-8. [src/engine/render/render.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/engine/render/render.js)
-9. [src/engine/render/diff.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/engine/render/diff.js)
-10. [src/engine/render/patch.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/engine/render/patch.js)
-11. [src/app/domain/quiz-logic.js](/C:/Users/user/Desktop/정글/수요코딩회/5주차/week5_webcoding/src/app/domain/quiz-logic.js)
-
-## 한 줄 요약
-
-현재 성향테스트 페이지는 `App -> hooks(state/memo) -> h()로 VDOM 생성 -> render -> diff -> patch` 흐름으로 결과 화면까지 도달합니다.
+첫 화면 다음에는 버튼 클릭으로 `handleStart()`가 실행되고,  
+그때부터는 `setAppState -> update -> diff -> patch` 흐름으로 닉네임 화면, 질문 화면, 결과 화면까지 이동합니다.

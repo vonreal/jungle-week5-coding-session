@@ -399,6 +399,57 @@ export function QuestionPage({
   });
 }
 
+export function LoadingPage({ nickname }) {
+  return AppShell({
+    screenClassName: "screen-loading",
+    children: [
+      h(
+        "div",
+        { className: "loading-panel" },
+        h(
+          "section",
+          { className: "loading-content" },
+          h(
+            "div",
+            { className: "loading-visual" },
+            h("div", { className: "loading-ring loading-ring-outer" }),
+            h(
+              "div",
+              { className: "loading-core" },
+              h(
+                "div",
+                { className: "loading-core-body" },
+                h("p", { className: "loading-core-text" }, "loading...")
+              )
+            )
+          ),
+          h(
+            "div",
+            { className: "loading-copy" },
+            h(
+              "h2",
+              { className: "loading-title" },
+              nickname ? `${nickname}님의 정글 동물을` : "당신의 정글 동물을",
+              h("br"),
+              "찾고 있습니다...",
+              h("span", { className: "loading-cursor", "aria-hidden": "true" })
+            )
+          ),
+          h(
+            "div",
+            { className: "loading-progress" },
+            h(
+              "div",
+              { className: "loading-progress-track" },
+              h("div", { className: "loading-progress-fill" })
+            )
+          )
+        )
+      ),
+    ],
+  });
+}
+
 export function ResultPage({ nickname, result, scores, directions, bestMatchResult, onRestart }) {
   return AppShell({
     screenClassName: "screen-result",

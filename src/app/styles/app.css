@@ -142,6 +142,14 @@ body::before {
   line-height: 1.4;
 }
 
+.question-title-fixed {
+  width: min(100%, 480px);
+  min-height: calc(1.4em * 2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .field-wrap {
   width: min(100%, 480px);
 }
@@ -192,6 +200,15 @@ body::before {
   transition: width 0.25s ease;
 }
 
+.saved-status {
+  margin: 0;
+  width: min(100%, 480px);
+  text-align: right;
+  color: #646876;
+  font-size: 14px;
+  font-weight: 600;
+}
+
 .choice-list {
   width: min(100%, 480px);
   display: grid;
@@ -215,6 +232,42 @@ body::before {
 .choice-button:hover {
   background: #dfe1e8;
   color: #282b35;
+}
+
+.choice-button.selected {
+  background: #141821;
+  border-color: #141821;
+  color: #f4f4f7;
+}
+
+.question-nav {
+  width: min(100%, 480px);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.nav-button {
+  appearance: none;
+  border: 1px solid #272b37;
+  border-radius: 999px;
+  min-height: 44px;
+  background: transparent;
+  color: #242734;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.nav-button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.nav-finish {
+  background: #0f1118;
+  color: #f4f4f7;
+  border-color: #0f1118;
 }
 
 .result-card {
@@ -297,6 +350,10 @@ body::before {
     font-size: clamp(28px, 8.4vw, 34px);
   }
 
+  .question-title-fixed {
+    min-height: calc(1.4em * 2);
+  }
+
   .nickname-input {
     font-size: clamp(24px, 7vw, 30px);
     padding: 14px 12px;
@@ -305,6 +362,10 @@ body::before {
   .choice-button {
     min-height: 74px;
     padding: 14px 12px;
+  }
+
+  .question-nav {
+    grid-template-columns: 1fr;
   }
 
   .primary-button {
@@ -316,6 +377,7 @@ body::before {
   .result-title {
     font-size: clamp(32px, 10vw, 42px);
   }
+
 }
 
 @media (max-width: 480px) {
@@ -344,6 +406,10 @@ body::before {
   .page-description {
     font-size: 16px;
     line-height: 1.55;
+  }
+
+  .question-title-fixed {
+    min-height: calc(1.4em * 2.2);
   }
 
   .primary-button {

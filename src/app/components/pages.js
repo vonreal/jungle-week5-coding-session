@@ -82,11 +82,11 @@ function ProgressBar({ current, total }) {
   );
 }
 
-function ChoiceButton({ choice, onSelect }) {
+function ChoiceButton({ choice, onSelect, selected }) {
   return h(
     "button",
     {
-      className: "choice-button",
+      className: `choice-button${selected ? " selected" : ""}`,
       onClick: () => onSelect(choice),
       type: "button",
     },
@@ -94,18 +94,73 @@ function ChoiceButton({ choice, onSelect }) {
   );
 }
 
-export function QuestionPage({ question, questionIndex, totalQuestions, onSelectChoice }) {
+export function QuestionPage({
+  question,
+  questionIndex,
+  totalQuestions,
+  selectedChoiceId,
+  answeredCount,
+  canGoPrev,
+  canGoNext,
+  canFinish,
+  isLastQuestion,
+  onSelectChoice,
+  onPrevQuestion,
+  onNextQuestion,
+  onFinishQuiz,
+}) {
   return AppShell({
     children: [
       ProgressBar({
         current: questionIndex + 1,
         total: totalQuestions,
       }),
-      h("h2", { className: "question-title" }, question.text),
+      h("p", { className: "saved-status" }, `저장됨 ${answeredCount}/${totalQuestions}`),
+      h("h2", { className: "question-title question-title-fixed" }, question.text),
       h(
         "div",
         { className: "choice-list" },
-        question.choices.map((choice) => ChoiceButton({ choice, onSelect: onSelectChoice }))
+        question.choices.map((choice) =>
+          ChoiceButton({
+            choice,
+            onSelect: onSelectChoice,
+            selected: selectedChoiceId === choice.id,
+          })
+        )
+      ),
+      h(
+        "div",
+        { className: "question-nav" },
+        h(
+          "button",
+          {
+            className: "nav-button",
+            type: "button",
+            onClick: onPrevQuestion,
+            disabled: !canGoPrev,
+          },
+          "이전"
+        ),
+        h(
+          "button",
+          {
+            className: "nav-button",
+            type: "button",
+            onClick: onNextQuestion,
+            disabled: !canGoNext,
+          },
+          "다음"
+        ),
+        h(
+          "button",
+          {
+            className: "nav-button nav-finish",
+            type: "button",
+            onClick: onFinishQuiz,
+            disabled: !isLastQuestion || !canFinish,
+          },
+          "결과 보기"
+        )
       ),
     ],
   });

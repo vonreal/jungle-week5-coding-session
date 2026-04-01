@@ -1,5 +1,7 @@
 import { h, TEXT_NODE } from "../vdom/h.js";
 
+// 이 함수는 VDOM 트리를 사람이 읽기 쉬운 줄글 형태로 바꿔줍니다.
+// 실제 렌더링용 함수는 아니고, 학습용/디버깅용 도우미입니다.
 function collectNodeLines(node, depth = 0) {
   const indent = "  ".repeat(depth);
   const label =
@@ -18,6 +20,8 @@ function collectNodeLines(node, depth = 0) {
   return lines;
 }
 
+// Step 1에서 사용할 샘플 VDOM 트리를 만듭니다.
+// 이 트리는 이후 Step 2에서 실제 DOM으로도 렌더링됩니다.
 export function createStep1VdomDemo() {
   const tree = h(
     "section",

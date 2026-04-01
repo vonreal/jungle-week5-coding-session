@@ -587,15 +587,15 @@ body::before {
 }
 
 .insight-title {
-  font-size: 15px;
+  font-size: 19px;
   font-weight: 800;
 }
 
 .insight-description {
   margin: 0;
   color: #5f6b68;
-  font-size: 15px;
-  line-height: 1.5;
+  font-size: 17px;
+  line-height: 1.6;
 }
 
 .result-hero,
@@ -643,35 +643,35 @@ body::before {
   max-width: 85%;
   text-align: center;
   color: rgba(244, 244, 247, 0.72);
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 15px;
+  line-height: 1.6;
 }
 
 .result-section-label {
   margin: 0 0 14px;
   color: #7e6343;
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 800;
   letter-spacing: 0.14em;
 }
 
 .result-hero-title {
   margin: 0;
-  font-size: 30px;
+  font-size: 34px;
   font-weight: 800;
 }
 
 .result-animal {
   margin: 0 0 12px;
   text-align: center;
-  font-size: 26px;
+  font-size: 30px;
   font-weight: 700;
 }
 
 .result-title {
   margin: 0 0 18px;
   text-align: center;
-  font-size: 42px;
+  font-size: 48px;
   font-weight: 800;
 }
 
@@ -681,7 +681,7 @@ body::before {
   text-align: center;
   color: #373a45;
   line-height: 1.6;
-  font-size: 18px;
+  font-size: 20px;
 }
 
 .result-meta {
@@ -749,7 +749,7 @@ body::before {
 
 .radar-summary-title {
   margin: 0;
-  font-size: 17px;
+  font-size: 21px;
   font-weight: 800;
   color: #1f2430;
 }
@@ -774,19 +774,19 @@ body::before {
 }
 
 .radar-detail-axis {
-  font-size: 12px;
+  font-size: 15px;
   letter-spacing: 0.12em;
   color: #7e6343;
 }
 
 .radar-detail-label {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 800;
   color: #171a22;
 }
 
 .radar-detail-score {
-  font-size: 14px;
+  font-size: 16px;
   color: #606478;
 }
 
@@ -813,14 +813,14 @@ body::before {
 }
 
 .synergy-name {
-  font-size: 17px;
+  font-size: 21px;
 }
 
 .synergy-description {
   margin: 0;
   color: #6a6e7a;
-  font-size: 13px;
-  line-height: 1.45;
+  font-size: 16px;
+  line-height: 1.55;
 }
 
 .direction-text {

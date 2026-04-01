@@ -13,11 +13,17 @@
 
 html,
 body {
+  width: 100%;
+  min-height: 100%;
   margin: 0;
   padding: 0;
   background: var(--bg);
   color: var(--ink);
   font-family: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+}
+
+#app {
+  min-height: 100dvh;
 }
 
 body::before {
@@ -41,23 +47,28 @@ body::before {
 }
 
 .app-root {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 24px;
-  padding: 18px 12px 24px;
+  padding: clamp(16px, 3vw, 28px) 12px;
 }
 
 .app-shell {
   width: min(100%, 560px);
+  margin-inline: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .screen {
-  min-height: 80vh;
+  width: 100%;
+  min-height: min(860px, calc(100dvh - 24px));
   border-radius: 26px;
-  padding: 32px 22px;
+  padding: clamp(24px, 3.6vw, 36px) clamp(14px, 3vw, 24px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -105,7 +116,8 @@ body::before {
   font-size: 22px;
   font-weight: 700;
   padding: 18px 40px;
-  min-width: 260px;
+  min-width: 240px;
+  max-width: 100%;
   cursor: pointer;
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
@@ -138,7 +150,7 @@ body::before {
   width: 100%;
   border: 1px solid #333844;
   background: transparent;
-  font-size: 38px;
+  font-size: clamp(26px, 5vw, 38px);
   font-weight: 600;
   text-align: center;
   padding: 18px 16px;
@@ -192,7 +204,7 @@ body::before {
   background: transparent;
   color: #646876;
   min-height: 92px;
-  font-size: 27px;
+  font-size: clamp(18px, 3.6vw, 27px);
   font-weight: 500;
   line-height: 1.45;
   padding: 16px;
@@ -276,25 +288,75 @@ body::before {
 
 @media (max-width: 768px) {
   .screen {
-    min-height: auto;
-    padding: 24px 12px;
+    min-height: min(860px, calc(100dvh - 20px));
+    padding: 20px 10px;
+    gap: 18px;
   }
 
   .question-title {
-    font-size: 34px;
+    font-size: clamp(28px, 8.4vw, 34px);
   }
 
   .nickname-input {
-    font-size: 30px;
+    font-size: clamp(24px, 7vw, 30px);
+    padding: 14px 12px;
   }
 
   .choice-button {
-    font-size: 20px;
-    min-height: 80px;
+    min-height: 74px;
+    padding: 14px 12px;
   }
 
   .primary-button {
-    min-width: 220px;
+    min-width: 210px;
     font-size: 18px;
+    padding: 15px 28px;
+  }
+
+  .result-title {
+    font-size: clamp(32px, 10vw, 42px);
+  }
+}
+
+@media (max-width: 480px) {
+  .app-root {
+    padding: 12px 8px;
+  }
+
+  .app-shell {
+    width: 100%;
+  }
+
+  .screen {
+    min-height: min(860px, calc(100dvh - 12px));
+    border-radius: 18px;
+    padding: 16px 8px;
+  }
+
+  .field-wrap,
+  .progress-wrap,
+  .choice-list,
+  .result-card,
+  .primary-button.block {
+    width: min(100%, 100%);
+  }
+
+  .page-description {
+    font-size: 16px;
+    line-height: 1.55;
+  }
+
+  .primary-button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .choice-button {
+    min-height: 68px;
+    line-height: 1.35;
+  }
+
+  .result-description {
+    font-size: 16px;
   }
 }

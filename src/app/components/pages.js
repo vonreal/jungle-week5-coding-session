@@ -1,12 +1,12 @@
 import { h } from "../../engine/vdom/h.js";
 
-function AppShell({ children, screenClassName = "" }) {
+function AppShell({ children, screenClassName = "", screenTag = "section" }) {
   const screenClass = screenClassName ? `screen ${screenClassName}` : "screen";
   return h(
     "main",
     { className: "app-shell" },
     h(
-      "section",
+      screenTag,
       { className: screenClass },
       h("div", { className: "screen-surface" }, children)
     )
@@ -453,6 +453,7 @@ export function LoadingPage({ nickname }) {
 export function ResultPage({ nickname, result, scores, directions, bestMatchResult, onRestart }) {
   return AppShell({
     screenClassName: "screen-result",
+    screenTag: "article",
     children: [
       HeaderLogo(),
       h("h1", { className: "page-title" }, "정글 성향 테스트 결과"),

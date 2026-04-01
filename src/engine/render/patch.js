@@ -51,7 +51,7 @@ export function patch(parentElement, oldVNode, newVNode, index = 0) {
   const newChildrenLength = newVNode.children?.length ?? 0;
   const childCount = Math.max(oldChildrenLength, newChildrenLength);
 
-  for (let childIndex = 0; childIndex < childCount; childIndex += 1) {
+  for (let childIndex = childCount - 1; childIndex >= 0; childIndex -= 1) {
     patch(
       currentDomNode,
       oldVNode.children?.[childIndex],

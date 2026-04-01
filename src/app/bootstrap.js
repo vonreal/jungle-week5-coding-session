@@ -1,119 +1,63 @@
-import { StartPage, NicknamePage, QuestionPage, ResultPage } from "./components/pages.js";
+import { mountRoot } from "../engine/core/mountRoot.js";
+import { useMemo } from "../engine/hooks/useMemo.js";
+import { useState } from "../engine/hooks/useState.js";
+import { NicknamePage, QuestionPage, ResultPage, StartPage } from "./components/pages.js";
 import { quizConfig, quizQuestions, quizResults } from "./data/index.js";
 import { evaluateQuizResult } from "./domain/quiz-logic.js";
-import { createRenderer, h } from "./runtime/vdom.js";
 
-const appState = {
-  screen: "start",
-  nickname: "",
-  currentIndex: 0,
-  answers: [],
-};
-
-const resultMemo = {
-  key: "",
-  value: {
-    scores: {},
-    directions: {},
-    result: null,
-  },
-};
-
-function resetState() {
-  appState.screen = "start";
-  appState.nickname = "";
-  appState.currentIndex = 0;
-  appState.answers = [];
-}
-
-function getMemoizedResult() {
-  const key = JSON.stringify(appState.answers);
-
-  if (key === resultMemo.key) {
-    return resultMemo.value;
-  }
-
-  const nextValue = evaluateQuizResult({
-    questions: quizQuestions,
-    answers: appState.answers,
-    axes: quizConfig.axes,
-    results: quizResults,
+function App() {
+  const [appState, setAppState] = useState({
+    screen: "start",
+    nickname: "",
+    currentIndex: 0,
+    answers: [],
   });
 
-  resultMemo.key = key;
-  resultMemo.value = nextValue;
+  const calculated = useMemo(() => {
+    return evaluateQuizResult({
+      questions: quizQuestions,
+      answers: appState.answers,
+      axes: quizConfig.axes,
+      results: quizResults,
+    });
+  }, [appState.answers]);
 
-  return nextValue;
-}
-
-function App({ state, handlers }) {
   const startConfig = {
     ...quizConfig,
     subtitle: quizConfig.subtitle || "정글 성향 테스트",
     ctaLabel: quizConfig.ctaLabel || "나는 어떤 정글 동물일까?",
   };
 
-  if (state.screen === "start") {
-    return h(StartPage, {
-      config: startConfig,
-      onStart: handlers.handleStart,
-    });
-  }
-
-  if (state.screen === "nickname") {
-    return h(NicknamePage, {
-      nickname: state.nickname,
-      onInputNickname: handlers.handleNicknameInput,
-      onSubmitNickname: handlers.handleNicknameSubmit,
-    });
-  }
-
-  if (state.screen === "quiz") {
-    return h(QuestionPage, {
-      question: quizQuestions[state.currentIndex],
-      questionIndex: state.currentIndex,
-      totalQuestions: quizQuestions.length,
-      onSelectChoice: handlers.handleChoiceSelect,
-    });
-  }
-
-  const calculated = getMemoizedResult();
-
-  return h(ResultPage, {
-    nickname: state.nickname,
-    result: calculated.result,
-    directions: calculated.directions,
-    onRestart: handlers.handleRestart,
-  });
-}
-
-export function mountApp() {
-  const root = document.querySelector("#app");
-  const renderer = createRenderer(root);
-
-  const render = () => {
-    renderer.render(h("div", { className: "app-root" }, h(App, { state: appState, handlers })));
+  const handleStart = () => {
+    setAppState((prev) => ({
+      ...prev,
+      screen: "nickname",
+    }));
   };
 
-  const handlers = {
-    handleStart() {
-      appState.screen = "nickname";
-      render();
-    },
-    handleNicknameInput(event) {
-      appState.nickname = event.target.value;
-      render();
-    },
-    handleNicknameSubmit() {
-      if (!appState.nickname.trim()) return;
-      appState.screen = "quiz";
-      render();
-    },
-    handleChoiceSelect(choice) {
-      const question = quizQuestions[appState.currentIndex];
+  const handleNicknameInput = (event) => {
+    const nextNickname = event?.target?.value ?? "";
+    setAppState((prev) => ({
+      ...prev,
+      nickname: nextNickname,
+    }));
+  };
 
-      appState.answers = [
-        ...appState.answers,
+  const handleNicknameSubmit = () => {
+    setAppState((prev) => {
+      if (!prev.nickname.trim()) return prev;
+      return {
+        ...prev,
+        screen: "quiz",
+      };
+    });
+  };
+
+  const handleChoiceSelect = (choice) => {
+    setAppState((prev) => {
+      const question = quizQuestions[prev.currentIndex];
+      const nextAnswers = [
+        ...prev.answers,
         {
           questionId: question.id,
           axis: question.axis,
@@ -122,19 +66,59 @@ export function mountApp() {
         },
       ];
 
-      if (appState.currentIndex >= quizQuestions.length - 1) {
-        appState.screen = "result";
-      } else {
-        appState.currentIndex += 1;
-      }
+      const isLastQuestion = prev.currentIndex >= quizQuestions.length - 1;
 
-      render();
-    },
-    handleRestart() {
-      resetState();
-      render();
-    },
+      return {
+        ...prev,
+        answers: nextAnswers,
+        screen: isLastQuestion ? "result" : prev.screen,
+        currentIndex: isLastQuestion ? prev.currentIndex : prev.currentIndex + 1,
+      };
+    });
   };
 
-  render();
+  const handleRestart = () => {
+    setAppState({
+      screen: "start",
+      nickname: "",
+      currentIndex: 0,
+      answers: [],
+    });
+  };
+
+  if (appState.screen === "start") {
+    return StartPage({
+      config: startConfig,
+      onStart: handleStart,
+    });
+  }
+
+  if (appState.screen === "nickname") {
+    return NicknamePage({
+      nickname: appState.nickname,
+      onInputNickname: handleNicknameInput,
+      onSubmitNickname: handleNicknameSubmit,
+    });
+  }
+
+  if (appState.screen === "quiz") {
+    return QuestionPage({
+      question: quizQuestions[appState.currentIndex],
+      questionIndex: appState.currentIndex,
+      totalQuestions: quizQuestions.length,
+      onSelectChoice: handleChoiceSelect,
+    });
+  }
+
+  return ResultPage({
+    nickname: appState.nickname,
+    result: calculated.result,
+    directions: calculated.directions,
+    onRestart: handleRestart,
+  });
+}
+
+export function mountApp() {
+  const root = document.querySelector("#app");
+  mountRoot(App, root);
 }

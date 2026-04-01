@@ -13,7 +13,7 @@ export const quizResults = [
     ],
     caution: "가끔은 지휘봉을 내려놓고 다른 팀원의 방식을 따라가 보면 새로운 시야이 열릴 수 있다.",
     bestMatch: "puma",
-    image: "",
+    image: "/src/app/assets/imgs/howler-monkey.png",
   },
   {
     id: "spectacled-owl",
@@ -29,7 +29,7 @@ export const quizResults = [
     ],
     caution: "완벽하게 이해하려는 마음을 조금 내려놓으면, 더 많은 경험을 쌓을 수 있는 시간이 생긴다.",
     bestMatch: "crab-eating-fox",
-    image: "",
+    image: "/src/app/assets/imgs/owl.png",
   },
   {
     id: "scarlet-macaw",
@@ -45,7 +45,7 @@ export const quizResults = [
     ],
     caution: "호기심의 방향이 자주 바뀔 수 있으니, 한 주제를 끝까지 파보는 연습을 하면 깊이가 더해진다.",
     bestMatch: "sloth",
-    image: "",
+    image: "/src/app/assets/imgs/scarlet-macaw.png",
   },
   {
     id: "pink-dolphin",
@@ -61,7 +61,7 @@ export const quizResults = [
     ],
     caution: "토론이 길어지면 실제 구현 시간이 부족해질 수 있으니, 적절한 시점에 코드로 옮기는 습관을 들이면 좋다.",
     bestMatch: "black-caiman",
-    image: "",
+    image: "/src/app/assets/imgs/dolphin.png",
   },
   {
     id: "giant-otter",
@@ -77,7 +77,7 @@ export const quizResults = [
     ],
     caution: "실행 속도에 집중하다 보면 '왜 이렇게 동작하는지'를 놓칠 수 있으니, 구현 후 핵심 로직을 복기하는 시간을 확보하면 좋다.",
     bestMatch: "green-anaconda",
-    image: "",
+    image: "/src/app/assets/imgs/otter.png",
   },
   {
     id: "gorilla",
@@ -93,7 +93,7 @@ export const quizResults = [
     ],
     caution: "모든 걸 직접 챙기려 하면 번아웃이 올 수 있으니, 팀원에게 위임하는 연습도 리더의 성장이다.",
     bestMatch: "yellow-footed-tortoise",
-    image: "",
+    image: "/src/app/assets/imgs/gorilla.png",
   },
   {
     id: "spider-monkey",
@@ -109,7 +109,7 @@ export const quizResults = [
     ],
     caution: "즉흥적으로 만든 코드는 나중에 관리가 어려울 수 있으니, 핵심 로직만이라도 주석이나 문서를 남기면 팀 전체가 편해진다.",
     bestMatch: "jaguar",
-    image: "",
+    image: "/src/app/assets/imgs/spider-monkey.png",
   },
   {
     id: "basilisk",
@@ -125,7 +125,7 @@ export const quizResults = [
     ],
     caution: "순발력만으로 해결하다 보면 같은 문제를 반복할 수 있으니, 해결한 뒤 패턴을 정리해두면 점점 더 빨라진다.",
     bestMatch: "harpy-eagle",
-    image: "",
+    image: "/src/app/assets/imgs/basilisk.png",
   },
   {
     id: "jaguar",
@@ -141,7 +141,7 @@ export const quizResults = [
     ],
     caution: "혼자 완벽하게 준비하려다 타이밍을 놓칠 수 있으니, 70%에서 팀과 공유하면 더 좋은 결과가 나올 수 있다.",
     bestMatch: "spider-monkey",
-    image: "",
+    image: "/src/app/assets/imgs/jaguar.png",
   },
   {
     id: "yellow-footed-tortoise",
@@ -157,7 +157,7 @@ export const quizResults = [
     ],
     caution: "완벽한 이해를 추구하다 보면 진도가 밀릴 수 있으니, 때로는 '일단 넘어가고 나중에 돌아오기' 전략도 유효하다.",
     bestMatch: "crab-eating-fox",
-    image: "",
+    image: "/src/app/assets/imgs/turtle.png",
   },
   {
     id: "harpy-eagle",
@@ -173,7 +173,7 @@ export const quizResults = [
     ],
     caution: "큰 그림에 집중하다 디테일을 놓칠 수 있으니, 가끔은 지상으로 내려와 코드 한 줄 한 줄을 들여다보면 통찰이 더 날카로워진다.",
     bestMatch: "basilisk",
-    image: "",
+    image: "/src/app/assets/imgs/eagle.png",
   },
   {
     id: "green-anaconda",
@@ -189,7 +189,7 @@ export const quizResults = [
     ],
     caution: "혼자 너무 깊이 파다 보면 팀과 싱크가 어긋날 수 있으니, 발견한 인사이트를 주기적으로 공유하면 팀 전체가 레벨업된다.",
     bestMatch: "giant-otter",
-    image: "",
+    image: "/src/app/assets/imgs/green-anaconda.png",
   },
   {
     id: "black-caiman",
@@ -205,7 +205,7 @@ export const quizResults = [
     ],
     caution: "효율을 추구하다 보면 팀원과의 소통이 줄어들 수 있으니, 가끔 자신의 방법론을 공유하면 서로에게 도움이 된다.",
     bestMatch: "pink-dolphin",
-    image: "",
+    image: "/src/app/assets/imgs/alligator.png",
   },
   {
     id: "sloth",
@@ -221,7 +221,7 @@ export const quizResults = [
     ],
     caution: "자기 페이스를 지키는 건 강점이지만, 가끔 팀의 속도에 맞춰보면 새로운 자극과 성장의 기회를 발견할 수 있다.",
     bestMatch: "scarlet-macaw",
-    image: "",
+    image: "/src/app/assets/imgs/sloth.png",
   },
   {
     id: "crab-eating-fox",
@@ -237,7 +237,7 @@ export const quizResults = [
     ],
     caution: "영리한 우회로에 익숙해지면 정공법을 놓칠 수 있으니, 기초 알고리즘을 정면으로 풀어보는 연습도 함께 하면 더 단단해진다.",
     bestMatch: "yellow-footed-tortoise",
-    image: "",
+    image: "/src/app/assets/imgs/crab-eating-fox.png",
   },
   {
     id: "puma",
@@ -253,6 +253,6 @@ export const quizResults = [
     ],
     caution: "혼자 힘으로 해내는 건 멋지지만, AI와 팀이라는 도구를 전략적으로 활용하면 같은 시간에 두 배의 성장이 가능하다.",
     bestMatch: "howler-monkey",
-    image: "",
+    image: "/src/app/assets/imgs/puma.png",
   },
 ];

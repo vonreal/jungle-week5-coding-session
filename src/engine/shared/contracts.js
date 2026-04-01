@@ -2,6 +2,7 @@ export const VDOM_NODE_SHAPE = {
   type: "string | function",
   props: "object",
   children: "array",
+  textNodeType: "TEXT_NODE",
 };
 
 export const APP_RUNTIME_CONTRACT = {

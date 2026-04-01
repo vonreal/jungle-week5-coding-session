@@ -1,54 +1,94 @@
 import assert from "node:assert/strict";
+
+import { quizConfig, quizQuestions, quizResults } from "../../src/app/data/index.js";
 import { evaluateQuizResult } from "../../src/app/domain/quiz-logic.js";
 
-const axes = [{ id: "CT" }, { id: "TL" }, { id: "PL" }, { id: "AI" }];
+const AXIS_IDS = quizConfig.axes.map((axis) => axis.id);
+const EXPECTED_COMBINATION_COUNT = 2 ** AXIS_IDS.length;
 
-const questions = [
-  { id: 1, axis: "CT" },
-  { id: 2, axis: "TL" },
-  { id: 3, axis: "PL" },
-  { id: 4, axis: "AI" },
-];
+function buildCombinationKey(directions) {
+  return AXIS_IDS.map((axisId) => `${axisId}:${directions[axisId]}`).join("|");
+}
 
-const answers = [
-  { questionId: 1, score: 2 },
-  { questionId: 2, score: -1 },
-  { questionId: 3, score: 1 },
-  { questionId: 4, score: -2 },
-];
+function buildDirectionsFromBits(mask) {
+  return AXIS_IDS.reduce((acc, axisId, index) => {
+    acc[axisId] = (mask & (1 << index)) !== 0 ? "positive" : "negative";
+    return acc;
+  }, {});
+}
 
-const results = [
-  {
-    id: "case-a",
-    condition: { CT: "positive", TL: "negative", PL: "positive", AI: "negative" },
-  },
-  {
-    id: "case-b",
-    condition: { CT: "negative", TL: "negative", PL: "positive", AI: "negative" },
-  },
-];
+function buildAnswersForDirections(directions) {
+  return quizQuestions.map((question) => {
+    const wantedDirection = directions[question.axis];
+    const choice = question.choices.find((item) =>
+      wantedDirection === "positive" ? item.score > 0 : item.score < 0
+    );
 
-const evaluated = evaluateQuizResult({
-  questions,
-  answers,
-  axes,
-  results,
-});
+    assert.ok(choice, `No choice found for axis ${question.axis} with direction ${wantedDirection}`);
 
-assert.deepEqual(evaluated.scores, {
-  CT: 2,
-  TL: -1,
-  PL: 1,
-  AI: -2,
-});
+    return {
+      questionId: question.id,
+      choiceId: choice.id,
+      score: choice.score,
+    };
+  });
+}
 
-assert.deepEqual(evaluated.directions, {
-  CT: "positive",
-  TL: "negative",
-  PL: "positive",
-  AI: "negative",
-});
+assert.equal(
+  quizResults.length,
+  EXPECTED_COMBINATION_COUNT,
+  `Expected ${EXPECTED_COMBINATION_COUNT} result types`
+);
 
-assert.equal(evaluated.result?.id, "case-a");
+const uniqueResultConditions = new Set(quizResults.map((result) => buildCombinationKey(result.condition)));
+assert.equal(
+  uniqueResultConditions.size,
+  EXPECTED_COMBINATION_COUNT,
+  "Each result should map to a unique 4-axis combination"
+);
+
+const seenResultIds = new Set();
+const reports = [];
+
+for (let mask = 0; mask < EXPECTED_COMBINATION_COUNT; mask += 1) {
+  const directions = buildDirectionsFromBits(mask);
+  const answers = buildAnswersForDirections(directions);
+
+  const evaluated = evaluateQuizResult({
+    questions: quizQuestions,
+    answers,
+    axes: quizConfig.axes,
+    results: quizResults,
+  });
+
+  assert.deepEqual(
+    evaluated.directions,
+    directions,
+    `Directions mismatch for ${buildCombinationKey(directions)}`
+  );
+
+  assert.ok(evaluated.result, `No result matched for ${buildCombinationKey(directions)}`);
+  assert.deepEqual(
+    evaluated.result.condition,
+    directions,
+    `Result condition mismatch for ${buildCombinationKey(directions)}`
+  );
+
+  seenResultIds.add(evaluated.result.id);
+  reports.push({
+    key: buildCombinationKey(directions),
+    resultId: evaluated.result.id,
+    animal: evaluated.result.animal,
+    title: evaluated.result.title,
+  });
+}
+
+assert.equal(seenResultIds.size, EXPECTED_COMBINATION_COUNT, "All 16 result types should be reachable");
+
+reports.sort((a, b) => a.key.localeCompare(b.key));
+
+for (const report of reports) {
+  console.log(`${report.key} -> ${report.resultId} | ${report.animal} | ${report.title}`);
+}
 
 console.log("quiz-logic.test.mjs passed");

@@ -1,0 +1,133 @@
+:root {
+  color-scheme: light;
+  --bg: #f4efe7;
+  --panel: #fffaf3;
+  --ink: #1f2937;
+  --muted: #6b7280;
+  --line: #dfd2bf;
+  --accent: #ca6c2c;
+  --accent-soft: #f8dfc8;
+  --shadow: 0 20px 50px rgba(84, 51, 16, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", "Apple SD Gothic Neo", sans-serif;
+  background:
+    radial-gradient(circle at top, rgba(202, 108, 44, 0.18), transparent 32%),
+    linear-gradient(180deg, #f8f2e8 0%, #f2eadf 100%);
+  color: var(--ink);
+}
+
+.page-shell {
+  min-height: 100vh;
+  padding: 48px 20px;
+}
+
+.page-container {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.hero {
+  margin-bottom: 28px;
+}
+
+.eyebrow {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.hero h1 {
+  margin: 16px 0 12px;
+  font-size: clamp(32px, 6vw, 58px);
+  line-height: 1;
+}
+
+.hero p {
+  max-width: 720px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.panel {
+  background: rgba(255, 250, 243, 0.9);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+}
+
+.panel h2,
+.panel h3 {
+  margin: 0 0 14px;
+}
+
+.demo-card {
+  display: grid;
+  gap: 14px;
+}
+
+.demo-badge {
+  width: fit-content;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #23170f;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.demo-copy {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.demo-list,
+.contract-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.mono-block {
+  margin: 0;
+  padding: 18px;
+  border-radius: 18px;
+  background: #201915;
+  color: #f9f1e7;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow: auto;
+}
+
+@media (max-width: 720px) {
+  .page-shell {
+    padding: 28px 14px;
+  }
+
+  .panel {
+    padding: 18px;
+    border-radius: 18px;
+  }
+}

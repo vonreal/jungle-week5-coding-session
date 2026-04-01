@@ -1,5 +1,5 @@
 import { StartPage, NicknamePage, QuestionPage, ResultPage } from "./components/pages.js";
-import { quizConfig, questions, results } from "./data/jungle-quiz-data.js";
+import { quizConfig, quizQuestions, quizResults } from "./data/index.js";
 import { evaluateQuizResult } from "./domain/quiz-logic.js";
 import { createRenderer, h } from "./runtime/vdom.js";
 
@@ -34,10 +34,10 @@ function getMemoizedResult() {
   }
 
   const nextValue = evaluateQuizResult({
-    questions,
+    questions: quizQuestions,
     answers: appState.answers,
     axes: quizConfig.axes,
-    results,
+    results: quizResults,
   });
 
   resultMemo.key = key;
@@ -47,9 +47,15 @@ function getMemoizedResult() {
 }
 
 function App({ state, handlers }) {
+  const startConfig = {
+    ...quizConfig,
+    subtitle: quizConfig.subtitle || "정글 성향 테스트",
+    ctaLabel: quizConfig.ctaLabel || "나는 어떤 정글 동물일까?",
+  };
+
   if (state.screen === "start") {
     return h(StartPage, {
-      config: quizConfig,
+      config: startConfig,
       onStart: handlers.handleStart,
     });
   }
@@ -64,9 +70,9 @@ function App({ state, handlers }) {
 
   if (state.screen === "quiz") {
     return h(QuestionPage, {
-      question: questions[state.currentIndex],
+      question: quizQuestions[state.currentIndex],
       questionIndex: state.currentIndex,
-      totalQuestions: questions.length,
+      totalQuestions: quizQuestions.length,
       onSelectChoice: handlers.handleChoiceSelect,
     });
   }
@@ -86,9 +92,7 @@ export function mountApp() {
   const renderer = createRenderer(root);
 
   const render = () => {
-    renderer.render(
-      h("div", { className: "app-root" }, h(App, { state: appState, handlers }))
-    );
+    renderer.render(h("div", { className: "app-root" }, h(App, { state: appState, handlers })));
   };
 
   const handlers = {
@@ -106,7 +110,8 @@ export function mountApp() {
       render();
     },
     handleChoiceSelect(choice) {
-      const question = questions[appState.currentIndex];
+      const question = quizQuestions[appState.currentIndex];
+
       appState.answers = [
         ...appState.answers,
         {
@@ -117,7 +122,7 @@ export function mountApp() {
         },
       ];
 
-      if (appState.currentIndex >= questions.length - 1) {
+      if (appState.currentIndex >= quizQuestions.length - 1) {
         appState.screen = "result";
       } else {
         appState.currentIndex += 1;

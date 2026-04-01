@@ -2,38 +2,89 @@ import { h } from "../../engine/vdom/h.js";
 
 function AppShell({ children, screenClassName = "" }) {
   const screenClass = screenClassName ? `screen ${screenClassName}` : "screen";
-  return h("main", { className: "app-shell" }, h("section", { className: screenClass }, children));
+  return h(
+    "main",
+    { className: "app-shell" },
+    h(
+      "section",
+      { className: screenClass },
+      h("div", { className: "screen-surface" }, children)
+    )
+  );
 }
 
 function HeaderLogo() {
   return h("div", { className: "logo" }, "JUNGLE TEST");
 }
 
-function PrimaryButton({ label, onClick, disabled, block = false }) {
+function PrimaryButton({ label, onClick, disabled, block = false, className = "", suffix = "" }) {
   return h(
     "button",
     {
-      className: `primary-button${block ? " block" : ""}`,
+      className: `primary-button${block ? " block" : ""}${className ? ` ${className}` : ""}`,
       onClick,
       disabled,
       type: "button",
     },
-    label
+    h("span", { className: "primary-button-label" }, label),
+    suffix ? h("span", { className: "primary-button-suffix", "aria-hidden": "true" }, suffix) : null
   );
 }
 
 export function StartPage({ config, onStart }) {
-  return AppShell({
-    children: [
-      HeaderLogo(),
-      h("h1", { className: "page-title" }, config.subtitle),
-      h("p", { className: "start-headline" }, config.title),
-      h("p", { className: "page-description" }, config.description),
+  const visual = h(
+    "div",
+    { className: "start-visual" },
+    h("div", { className: "start-visual-glow" }),
+    h(
+      "div",
+      { className: "start-code-card" },
+      h(
+        "div",
+        { className: "start-code-dots" },
+        h("span", { className: "start-code-dot start-code-dot-red" }),
+        h("span", { className: "start-code-dot start-code-dot-yellow" }),
+        h("span", { className: "start-code-dot start-code-dot-green" })
+      ),
+      h("code", { className: "start-code-text" }, 'git commit -m "wild"')
+    ),
+    h(
+      "div",
+      { className: "start-illustration-frame" },
+      h("img", {
+        className: "start-illustration",
+        src: "/src/app/assets/imgs/hidden.png",
+        alt: "궁금증 유발하는 메인 사진",
+      })
+    ),
+    h("div", { className: "start-level-badge" }, "LV. 99 DEV")
+  );
+
+  const copy = h(
+    "div",
+    { className: "start-copy" },
+    h("p", { className: "start-kicker" }, config.subtitle),
+    h("h1", { className: "start-headline" }, "당신은 정글에서", h("br"), "어떤 동물입니까?"),
+    h("p", { className: "page-description start-description" }, config.description),
+    h(
+      "div",
+      { className: "start-actions" },
       PrimaryButton({
         label: config.ctaLabel,
         onClick: onStart,
         block: true,
+        className: "start-cta",
+        suffix: "->",
       }),
+      h("p", { className: "start-meta" }, "예상 소요 시간 · 3분")
+    )
+  );
+
+  return AppShell({
+    screenClassName: "screen-start",
+    children: [
+      HeaderLogo(),
+      h("div", { className: "start-hero" }, visual, copy),
     ],
   });
 }

@@ -103,36 +103,56 @@ function ChoiceButton({ choice, onSelect, selected }) {
   );
 }
 
-function clampScore(value) {
-  return Math.max(-4, Math.min(4, value || 0));
+function getAxisSpec(score, positiveLabel, negativeLabel) {
+  const safeScore = Math.max(-4, Math.min(4, score || 0));
+  const isPositive = safeScore > 0;
+
+  return {
+    direction: isPositive ? "positive" : "negative",
+    label: isPositive ? positiveLabel : negativeLabel,
+    value: Math.round((Math.abs(safeScore) / 4) * 100),
+    score: safeScore,
+  };
 }
 
-function RadarGraph({ scores, directions, axes }) {
-  const ct = clampScore(scores?.CT);
-  const tl = clampScore(scores?.TL);
-  const pl = clampScore(scores?.PL);
-  const ai = clampScore(scores?.AI);
+function computeTechSpecs(scores) {
+  return {
+    top: getAxisSpec(scores?.CT, "협업", "독립"),
+    right: getAxisSpec(scores?.TL, "이론", "실전"),
+    bottom: getAxisSpec(scores?.PL, "계획", "즉흥"),
+    left: getAxisSpec(scores?.AI, "AI 의존", "AI 참고"),
+  };
+}
+
+function getRadarPoints(techSpecs) {
+  const maxRadius = 80;
+  const topRadius = (techSpecs.top.value / 100) * maxRadius;
+  const rightRadius = (techSpecs.right.value / 100) * maxRadius;
+  const bottomRadius = (techSpecs.bottom.value / 100) * maxRadius;
+  const leftRadius = (techSpecs.left.value / 100) * maxRadius;
+
+  return [
+    `100,${100 - topRadius}`,
+    `${100 + rightRadius},100`,
+    `100,${100 + bottomRadius}`,
+    `${100 - leftRadius},100`,
+  ].join(" ");
+}
+
+function RadarGraph({ scores, axes }) {
+  const techSpecs = computeTechSpecs(scores);
 
   const axisItems = (axes || []).map((axis) => {
-    const direction = directions?.[axis.id] || "negative";
-    const label = direction === "positive" ? axis.labelPositive : axis.labelNegative;
-    const score = scores?.[axis.id] ?? 0;
+    const axisSpec = getAxisSpec(scores?.[axis.id], axis.labelPositive, axis.labelNegative);
 
     return h(
       "li",
       { className: "radar-detail-item" },
       h("strong", { className: "radar-detail-axis" }, axis.id),
-      h("span", { className: "radar-detail-label" }, label),
-      h("span", { className: "radar-detail-score" }, `${score > 0 ? "+" : ""}${score}`)
+      h("span", { className: "radar-detail-label" }, axisSpec.label),
+      h("span", { className: "radar-detail-score" }, `${axisSpec.value}%`)
     );
   });
-
-  const points = [
-    `80 ${80 - tl * 10}`,
-    `${80 + ai * 10} 80`,
-    `80 ${80 + pl * 10}`,
-    `${80 - ct * 10} 80`,
-  ].join(" ");
 
   return h(
     "div",
@@ -145,33 +165,37 @@ function RadarGraph({ scores, directions, axes }) {
         "svg",
         {
           className: "radar-graph",
-          viewBox: "0 0 160 160",
+          viewBox: "0 0 200 200",
           preserveAspectRatio: "xMidYMid meet",
           "aria-label": "성향 그래프",
         },
         h("polygon", {
           className: "radar-grid radar-grid-outer",
-          points: "80 20 140 80 80 140 20 80",
+          points: "100 20 180 100 100 180 20 100",
         }),
         h("polygon", {
           className: "radar-grid",
-          points: "80 35 125 80 80 125 35 80",
+          points: "100 40 160 100 100 160 40 100",
         }),
         h("polygon", {
           className: "radar-grid",
-          points: "80 50 110 80 80 110 50 80",
+          points: "100 60 140 100 100 140 60 100",
         }),
-        h("line", { className: "radar-axis", x1: "80", y1: "20", x2: "80", y2: "140" }),
-        h("line", { className: "radar-axis", x1: "20", y1: "80", x2: "140", y2: "80" }),
+        h("polygon", {
+          className: "radar-grid",
+          points: "100 80 120 100 100 120 80 100",
+        }),
+        h("line", { className: "radar-axis", x1: "100", y1: "20", x2: "100", y2: "180" }),
+        h("line", { className: "radar-axis", x1: "20", y1: "100", x2: "180", y2: "100" }),
         h("polygon", {
           className: "radar-shape",
-          points,
+          points: getRadarPoints(techSpecs),
         }),
-        h("circle", { className: "radar-center-dot", cx: "80", cy: "80", r: "3" }),
-        h("text", { className: "radar-label", x: "80", y: "10" }, "THEORY"),
-        h("text", { className: "radar-label", x: "80", y: "154" }, "PLAN"),
-        h("text", { className: "radar-label", x: "12", y: "84" }, "CO-OP"),
-        h("text", { className: "radar-label", x: "148", y: "84" }, "AI")
+        h("circle", { className: "radar-center-dot", cx: "100", cy: "100", r: "3" }),
+        h("text", { className: "radar-label", x: "100", y: "12" }, techSpecs.top.label),
+        h("text", { className: "radar-label", x: "188", y: "104", "text-anchor": "end" }, techSpecs.right.label),
+        h("text", { className: "radar-label", x: "100", y: "194" }, techSpecs.bottom.label),
+        h("text", { className: "radar-label", x: "12", y: "104", "text-anchor": "start" }, techSpecs.left.label)
       )
     ),
     h("p", { className: "radar-summary-title" }, "축 판정 요약"),
@@ -347,30 +371,23 @@ export function ResultPage({ nickname, result, scores, directions, bestMatchResu
     children: [
       HeaderLogo(),
       h("h1", { className: "page-title" }, "정글 성향 테스트 결과"),
-      ResultHero({ result }),
-      ResultDescriptionCard({ result }),
-      ResultStrengthCard({ strengths: result?.strengths }),
-      ResultCautionCard({ caution: result?.caution }),
-      RadarGraph({
-        scores,
-        directions,
-        axes: [
-          { id: "CT", labelPositive: "협업", labelNegative: "독립" },
-          { id: "TL", labelPositive: "이론", labelNegative: "실전" },
-          { id: "PL", labelPositive: "계획", labelNegative: "즉흥" },
-          { id: "AI", labelPositive: "AI의존", labelNegative: "AI참고" },
-        ],
-      }),
-      BestSynergy({ bestMatchResult }),
-      h("section", { className: "result-meta" },
-        h("p", {}, `${nickname} 님의 축 판정`),
-        h(
-          "p",
-          { className: "direction-text" },
-          Object.keys(directions)
-            .map((axisId) => `${axisId}:${directions[axisId]}`)
-            .join(" / ")
-        )
+      h(
+        "div",
+        { className: "result-content" },
+        ResultHero({ result }),
+        ResultDescriptionCard({ result }),
+        ResultStrengthCard({ strengths: result?.strengths }),
+        ResultCautionCard({ caution: result?.caution }),
+        RadarGraph({
+          scores,
+          axes: [
+            { id: "CT", labelPositive: "협업", labelNegative: "독립" },
+            { id: "TL", labelPositive: "이론", labelNegative: "실전" },
+            { id: "PL", labelPositive: "계획", labelNegative: "즉흥" },
+            { id: "AI", labelPositive: "AI의존", labelNegative: "AI참고" },
+          ],
+        }),
+        BestSynergy({ bestMatchResult })
       ),
       h(
         "footer",

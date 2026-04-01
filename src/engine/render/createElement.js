@@ -1,5 +1,20 @@
 import { TEXT_NODE } from "../vdom/h.js";
 
+const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
+const SVG_TAGS = new Set([
+  "svg",
+  "g",
+  "path",
+  "circle",
+  "ellipse",
+  "line",
+  "polygon",
+  "polyline",
+  "rect",
+  "text",
+  "tspan",
+]);
+
 // onClick, onInput 같은 이름인지 확인하는 도우미입니다.
 function isEventProp(name) {
   return name.startsWith("on");
@@ -25,6 +40,10 @@ function applyStyleObject(element, previousStyle = {}, nextStyle = {}) {
   }
 }
 
+function isSvgElement(element) {
+  return element?.namespaceURI === SVG_NAMESPACE;
+}
+
 // prop 하나를 실제 DOM에 적용합니다.
 function setProp(element, propName, propValue) {
   if (propName === "nodeValue" || propName === "key") {
@@ -38,7 +57,11 @@ function setProp(element, propName, propValue) {
   }
 
   if (propName === "className") {
-    element.className = propValue ?? "";
+    if (isSvgElement(element)) {
+      element.setAttribute("class", propValue ?? "");
+    } else {
+      element.className = propValue ?? "";
+    }
     return;
   }
 
@@ -47,7 +70,7 @@ function setProp(element, propName, propValue) {
     return;
   }
 
-  if (propName in element) {
+  if (!isSvgElement(element) && propName in element) {
     element[propName] = propValue;
     return;
   }
@@ -70,7 +93,11 @@ function removeProp(element, propName, propValue) {
   }
 
   if (propName === "className") {
-    element.className = "";
+    if (isSvgElement(element)) {
+      element.removeAttribute("class");
+    } else {
+      element.className = "";
+    }
     return;
   }
 
@@ -79,7 +106,7 @@ function removeProp(element, propName, propValue) {
     return;
   }
 
-  if (propName in element) {
+  if (!isSvgElement(element) && propName in element) {
     if (typeof element[propName] === "boolean") {
       element[propName] = false;
     } else {
@@ -129,15 +156,23 @@ export function updateDomProps(element, oldProps = {}, newProps = {}) {
 // 3. props를 실제 DOM에 반영
 // 4. children도 같은 함수로 다시 처리
 export function createElement(vNode) {
+  return createElementWithNamespace(vNode, false);
+}
+
+function createElementWithNamespace(vNode, inSvgNamespace) {
   if (vNode.type === TEXT_NODE) {
     return document.createTextNode(vNode.props.nodeValue);
   }
 
-  const element = document.createElement(vNode.type);
+  const shouldUseSvgNamespace = inSvgNamespace || SVG_TAGS.has(vNode.type);
+  const element = shouldUseSvgNamespace
+    ? document.createElementNS(SVG_NAMESPACE, vNode.type)
+    : document.createElement(vNode.type);
+
   updateDomProps(element, {}, vNode.props || {});
 
   for (const child of vNode.children || []) {
-    element.appendChild(createElement(child));
+    element.appendChild(createElementWithNamespace(child, shouldUseSvgNamespace));
   }
 
   return element;

@@ -1,3 +1,13 @@
+@font-face {
+  font-family: "Memoment Kkukkukk";
+  src:
+    url("../assets/fonts/MemomentKkukkukk.otf") format("opentype"),
+    url("../assets/fonts/MemomentKkukkukk.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --bg: #ececef;
   --ink: #0f0f11;
@@ -19,7 +29,14 @@ body {
   padding: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+  font-family: "Memoment Kkukkukk", "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
 
 #app {
@@ -79,8 +96,16 @@ body::before {
 
 .screen-result {
   justify-content: flex-start;
+  align-items: stretch;
   padding-top: clamp(32px, 5vw, 56px);
   padding-bottom: clamp(40px, 7vw, 88px);
+}
+
+.result-content {
+  width: 100%;
+  display: grid;
+  justify-items: center;
+  gap: 22px;
 }
 
 .logo {
@@ -591,7 +616,8 @@ body::before {
   width: min(100%, 620px);
   display: flex;
   justify-content: center;
-  margin-top: 4px;
+  margin-top: 20px;
+  align-self: center;
 }
 
 .contract-preview {

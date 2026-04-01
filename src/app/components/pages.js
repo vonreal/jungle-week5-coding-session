@@ -1,7 +1,8 @@
 import { h } from "../../engine/vdom/h.js";
 
-function AppShell({ children }) {
-  return h("main", { className: "app-shell" }, h("section", { className: "screen" }, children));
+function AppShell({ children, screenClassName = "" }) {
+  const screenClass = screenClassName ? `screen ${screenClassName}` : "screen";
+  return h("main", { className: "app-shell" }, h("section", { className: screenClass }, children));
 }
 
 function HeaderLogo() {
@@ -106,11 +107,25 @@ function clampScore(value) {
   return Math.max(-4, Math.min(4, value || 0));
 }
 
-function RadarGraph({ scores }) {
+function RadarGraph({ scores, directions, axes }) {
   const ct = clampScore(scores?.CT);
   const tl = clampScore(scores?.TL);
   const pl = clampScore(scores?.PL);
   const ai = clampScore(scores?.AI);
+
+  const axisItems = (axes || []).map((axis) => {
+    const direction = directions?.[axis.id] || "negative";
+    const label = direction === "positive" ? axis.labelPositive : axis.labelNegative;
+    const score = scores?.[axis.id] ?? 0;
+
+    return h(
+      "li",
+      { className: "radar-detail-item" },
+      h("strong", { className: "radar-detail-axis" }, axis.id),
+      h("span", { className: "radar-detail-label" }, label),
+      h("span", { className: "radar-detail-score" }, `${score > 0 ? "+" : ""}${score}`)
+    );
+  });
 
   const points = [
     `80 ${80 - tl * 10}`,
@@ -124,26 +139,46 @@ function RadarGraph({ scores }) {
     { className: "radar-card" },
     h("p", { className: "result-section-label" }, "TECH_SPECS"),
     h(
-      "svg",
-      {
-        className: "radar-graph",
-        viewBox: "0 0 160 160",
-        "aria-label": "성향 그래프",
-      },
-      h("polygon", {
-        className: "radar-grid",
-        points: "80 24 136 80 80 136 24 80",
-      }),
-      h("line", { className: "radar-axis", x1: "80", y1: "20", x2: "80", y2: "140" }),
-      h("line", { className: "radar-axis", x1: "20", y1: "80", x2: "140", y2: "80" }),
-      h("polygon", {
-        className: "radar-shape",
-        points,
-      }),
-      h("text", { className: "radar-label", x: "80", y: "12" }, "THEORY"),
-      h("text", { className: "radar-label", x: "80", y: "154" }, "PLAN"),
-      h("text", { className: "radar-label", x: "10", y: "84" }, "CO-OP"),
-      h("text", { className: "radar-label", x: "150", y: "84" }, "AI")
+      "div",
+      { className: "radar-graph-wrap" },
+      h(
+        "svg",
+        {
+          className: "radar-graph",
+          viewBox: "0 0 160 160",
+          preserveAspectRatio: "xMidYMid meet",
+          "aria-label": "성향 그래프",
+        },
+        h("polygon", {
+          className: "radar-grid radar-grid-outer",
+          points: "80 20 140 80 80 140 20 80",
+        }),
+        h("polygon", {
+          className: "radar-grid",
+          points: "80 35 125 80 80 125 35 80",
+        }),
+        h("polygon", {
+          className: "radar-grid",
+          points: "80 50 110 80 80 110 50 80",
+        }),
+        h("line", { className: "radar-axis", x1: "80", y1: "20", x2: "80", y2: "140" }),
+        h("line", { className: "radar-axis", x1: "20", y1: "80", x2: "140", y2: "80" }),
+        h("polygon", {
+          className: "radar-shape",
+          points,
+        }),
+        h("circle", { className: "radar-center-dot", cx: "80", cy: "80", r: "3" }),
+        h("text", { className: "radar-label", x: "80", y: "10" }, "THEORY"),
+        h("text", { className: "radar-label", x: "80", y: "154" }, "PLAN"),
+        h("text", { className: "radar-label", x: "12", y: "84" }, "CO-OP"),
+        h("text", { className: "radar-label", x: "148", y: "84" }, "AI")
+      )
+    ),
+    h("p", { className: "radar-summary-title" }, "축 판정 요약"),
+    h(
+      "ul",
+      { className: "radar-detail-list" },
+      axisItems
     )
   );
 }
@@ -194,6 +229,7 @@ function ResultDescriptionCard({ result }) {
   return h(
     "article",
     { className: "result-card" },
+    h("p", { className: "result-section-label" }, "PROFILE"),
     h("p", { className: "result-animal" }, result?.animal || "결과 준비 중"),
     h("h2", { className: "result-title" }, result?.title || "아직 매칭되는 결과가 없어요"),
     h("p", { className: "result-description" }, result?.description || "데이터를 확인해 주세요.")
@@ -307,6 +343,7 @@ export function QuestionPage({
 
 export function ResultPage({ nickname, result, scores, directions, bestMatchResult, onRestart }) {
   return AppShell({
+    screenClassName: "screen-result",
     children: [
       HeaderLogo(),
       h("h1", { className: "page-title" }, "정글 성향 테스트 결과"),
@@ -314,9 +351,18 @@ export function ResultPage({ nickname, result, scores, directions, bestMatchResu
       ResultDescriptionCard({ result }),
       ResultStrengthCard({ strengths: result?.strengths }),
       ResultCautionCard({ caution: result?.caution }),
-      RadarGraph({ scores }),
+      RadarGraph({
+        scores,
+        directions,
+        axes: [
+          { id: "CT", labelPositive: "협업", labelNegative: "독립" },
+          { id: "TL", labelPositive: "이론", labelNegative: "실전" },
+          { id: "PL", labelPositive: "계획", labelNegative: "즉흥" },
+          { id: "AI", labelPositive: "AI의존", labelNegative: "AI참고" },
+        ],
+      }),
       BestSynergy({ bestMatchResult }),
-      h("div", { className: "result-meta" },
+      h("section", { className: "result-meta" },
         h("p", {}, `${nickname} 님의 축 판정`),
         h(
           "p",
@@ -326,10 +372,14 @@ export function ResultPage({ nickname, result, scores, directions, bestMatchResu
             .join(" / ")
         )
       ),
-      PrimaryButton({
-        label: "다시하기",
-        onClick: onRestart,
-      }),
+      h(
+        "footer",
+        { className: "result-actions" },
+        PrimaryButton({
+          label: "다시하기",
+          onClick: onRestart,
+        })
+      ),
     ],
   });
 }

@@ -2,38 +2,89 @@ import { h } from "../../engine/vdom/h.js";
 
 function AppShell({ children, screenClassName = "" }) {
   const screenClass = screenClassName ? `screen ${screenClassName}` : "screen";
-  return h("main", { className: "app-shell" }, h("section", { className: screenClass }, children));
+  return h(
+    "main",
+    { className: "app-shell" },
+    h(
+      "section",
+      { className: screenClass },
+      h("div", { className: "screen-surface" }, children)
+    )
+  );
 }
 
 function HeaderLogo() {
   return h("div", { className: "logo" }, "JUNGLE TEST");
 }
 
-function PrimaryButton({ label, onClick, disabled, block = false }) {
+function PrimaryButton({ label, onClick, disabled, block = false, className = "", suffix = "" }) {
   return h(
     "button",
     {
-      className: `primary-button${block ? " block" : ""}`,
+      className: `primary-button${block ? " block" : ""}${className ? ` ${className}` : ""}`,
       onClick,
       disabled,
       type: "button",
     },
-    label
+    h("span", { className: "primary-button-label" }, label),
+    suffix ? h("span", { className: "primary-button-suffix", "aria-hidden": "true" }, suffix) : null
   );
 }
 
 export function StartPage({ config, onStart }) {
-  return AppShell({
-    children: [
-      HeaderLogo(),
-      h("h1", { className: "page-title" }, config.subtitle),
-      h("p", { className: "start-headline" }, config.title),
-      h("p", { className: "page-description" }, config.description),
+  const visual = h(
+    "div",
+    { className: "start-visual" },
+    h("div", { className: "start-visual-glow" }),
+    h(
+      "div",
+      { className: "start-code-card" },
+      h(
+        "div",
+        { className: "start-code-dots" },
+        h("span", { className: "start-code-dot start-code-dot-red" }),
+        h("span", { className: "start-code-dot start-code-dot-yellow" }),
+        h("span", { className: "start-code-dot start-code-dot-green" })
+      ),
+      h("code", { className: "start-code-text" }, 'git commit -m "wild"')
+    ),
+    h(
+      "div",
+      { className: "start-illustration-frame" },
+      h("img", {
+        className: "start-illustration",
+        src: "/src/app/assets/imgs/hidden.png",
+        alt: "궁금증 유발하는 메인 사진",
+      })
+    ),
+    h("div", { className: "start-level-badge" }, "LV. 99 DEV")
+  );
+
+  const copy = h(
+    "div",
+    { className: "start-copy" },
+    h("p", { className: "start-kicker" }, config.subtitle),
+    h("h1", { className: "start-headline" }, "당신은 정글에서", h("br"), "어떤 동물입니까?"),
+    h("p", { className: "page-description start-description" }, config.description),
+    h(
+      "div",
+      { className: "start-actions" },
       PrimaryButton({
         label: config.ctaLabel,
         onClick: onStart,
         block: true,
+        className: "start-cta",
+        suffix: "->",
       }),
+      h("p", { className: "start-meta" }, "예상 소요 시간 · 3분")
+    )
+  );
+
+  return AppShell({
+    screenClassName: "screen-start",
+    children: [
+      HeaderLogo(),
+      h("div", { className: "start-hero" }, visual, copy),
     ],
   });
 }
@@ -106,105 +157,87 @@ function ChoiceButton({ choice, onSelect, selected }) {
 function getAxisSpec(score, positiveLabel, negativeLabel) {
   const safeScore = Math.max(-4, Math.min(4, score || 0));
   const isPositive = safeScore > 0;
-  const intensity = Math.round((Math.abs(safeScore) / 4) * 100);
+  const positivePercent = Math.round(((safeScore + 4) / 8) * 100);
+  const negativePercent = 100 - positivePercent;
+  const dominantSide = positivePercent >= negativePercent ? "positive" : "negative";
+  const dominantValue = dominantSide === "positive" ? positivePercent : negativePercent;
 
   return {
     direction: isPositive ? "positive" : "negative",
     label: isPositive ? positiveLabel : negativeLabel,
-    value: Math.max(25, intensity),
+    positiveLabel,
+    negativeLabel,
+    positivePercent,
+    negativePercent,
+    dominantSide,
+    dominantValue,
     score: safeScore,
   };
 }
 
-function computeTechSpecs(scores) {
-  return {
-    top: getAxisSpec(scores?.CT, "협업", "독립"),
-    right: getAxisSpec(scores?.TL, "이론", "실전"),
-    bottom: getAxisSpec(scores?.PL, "계획", "즉흥"),
-    left: getAxisSpec(scores?.AI, "AI 의존", "AI 참고"),
-  };
-}
-
-function getRadarPoints(techSpecs) {
-  const maxRadius = 80;
-  const topRadius = (techSpecs.top.value / 100) * maxRadius;
-  const rightRadius = (techSpecs.right.value / 100) * maxRadius;
-  const bottomRadius = (techSpecs.bottom.value / 100) * maxRadius;
-  const leftRadius = (techSpecs.left.value / 100) * maxRadius;
-
-  return [
-    `100,${100 - topRadius}`,
-    `${100 + rightRadius},100`,
-    `100,${100 + bottomRadius}`,
-    `${100 - leftRadius},100`,
-  ].join(" ");
-}
-
 function RadarGraph({ scores, axes }) {
-  const techSpecs = computeTechSpecs(scores);
+  const axisColors = {
+    CT: "tech-spec-bar-blue",
+    TL: "tech-spec-bar-gold",
+    PL: "tech-spec-bar-green",
+    AI: "tech-spec-bar-purple",
+  };
+  const axisTitles = {
+    CT: "협업 방식",
+    TL: "학습 방식",
+    PL: "진행 방식",
+    AI: "도구 활용 방식",
+  };
 
-  const axisItems = (axes || []).map((axis) => {
+  const axisItems = (axes || []).map((axis, index) => {
     const axisSpec = getAxisSpec(scores?.[axis.id], axis.labelPositive, axis.labelNegative);
+    const fillStyle =
+      axisSpec.dominantSide === "positive"
+        ? `left: 0; width: ${axisSpec.positivePercent}%;`
+        : `right: 0; width: ${axisSpec.negativePercent}%;`;
 
     return h(
-      "li",
-      { className: "radar-detail-item" },
-      h("strong", { className: "radar-detail-axis" }, axis.id),
-      h("span", { className: "radar-detail-label" }, axisSpec.label),
-      h("span", { className: "radar-detail-score" }, `${axisSpec.value}%`)
+      "article",
+      {
+        className: `tech-spec-item${index < axes.length - 1 ? " with-divider" : ""}`,
+      },
+      h("h3", { className: "tech-spec-title" }, axisTitles[axis.id] || axis.id),
+      h(
+        "div",
+        { className: "tech-spec-values" },
+        h(
+          "div",
+          { className: "tech-spec-side tech-spec-side-left" },
+          h("strong", { className: "tech-spec-percent" }, `${axisSpec.positivePercent}%`),
+          h("span", { className: "tech-spec-label" }, axisSpec.positiveLabel)
+        ),
+        h(
+          "div",
+          { className: "tech-spec-track-wrap" },
+          h(
+            "div",
+            { className: "tech-spec-track" },
+            h("div", {
+              className: `tech-spec-fill ${axisColors[axis.id] || "tech-spec-bar-blue"}`,
+              style: fillStyle,
+            })
+          )
+        ),
+        h(
+          "div",
+          { className: "tech-spec-side tech-spec-side-right" },
+          h("strong", { className: "tech-spec-percent" }, `${axisSpec.negativePercent}%`),
+          h("span", { className: "tech-spec-label" }, axisSpec.negativeLabel)
+        )
+      )
     );
   });
 
   return h(
-    "div",
+    "section",
     { className: "radar-card" },
     h("p", { className: "result-section-label" }, "TECH_SPECS"),
-    h(
-      "div",
-      { className: "radar-graph-wrap" },
-      h(
-        "svg",
-        {
-          className: "radar-graph",
-          viewBox: "0 0 200 200",
-          preserveAspectRatio: "xMidYMid meet",
-          "aria-label": "성향 그래프",
-        },
-        h("polygon", {
-          className: "radar-grid radar-grid-outer",
-          points: "100 20 180 100 100 180 20 100",
-        }),
-        h("polygon", {
-          className: "radar-grid",
-          points: "100 40 160 100 100 160 40 100",
-        }),
-        h("polygon", {
-          className: "radar-grid",
-          points: "100 60 140 100 100 140 60 100",
-        }),
-        h("polygon", {
-          className: "radar-grid",
-          points: "100 80 120 100 100 120 80 100",
-        }),
-        h("line", { className: "radar-axis", x1: "100", y1: "20", x2: "100", y2: "180" }),
-        h("line", { className: "radar-axis", x1: "20", y1: "100", x2: "180", y2: "100" }),
-        h("polygon", {
-          className: "radar-shape",
-          points: getRadarPoints(techSpecs),
-        }),
-        h("circle", { className: "radar-center-dot", cx: "100", cy: "100", r: "3" }),
-        h("text", { className: "radar-label", x: "100", y: "12" }, techSpecs.top.label),
-        h("text", { className: "radar-label", x: "188", y: "104", "text-anchor": "end" }, techSpecs.right.label),
-        h("text", { className: "radar-label", x: "100", y: "194" }, techSpecs.bottom.label),
-        h("text", { className: "radar-label", x: "12", y: "104", "text-anchor": "start" }, techSpecs.left.label)
-      )
-    ),
-    h("p", { className: "radar-summary-title" }, "축 판정 요약"),
-    h(
-      "ul",
-      { className: "radar-detail-list" },
-      axisItems
-    )
+    h("div", { className: "tech-spec-list" }, axisItems)
   );
 }
 

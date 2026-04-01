@@ -13,7 +13,7 @@ export const quizResults = [
     ],
     caution: "가끔은 지휘봉을 내려놓고 다른 팀원의 방식을 따라가 보면 새로운 시야이 열릴 수 있다.",
     bestMatch: "puma",
-    image: "/src/app/assets/imgs/monkey .png",
+    image: "/src/app/assets/imgs/howler-monkey.png",
   },
   {
     id: "spectacled-owl",
@@ -205,7 +205,7 @@ export const quizResults = [
     ],
     caution: "효율을 추구하다 보면 팀원과의 소통이 줄어들 수 있으니, 가끔 자신의 방법론을 공유하면 서로에게 도움이 된다.",
     bestMatch: "pink-dolphin",
-    image: "/src/app/assets/imgs/aligator.png",
+    image: "/src/app/assets/imgs/alligator.png",
   },
   {
     id: "sloth",

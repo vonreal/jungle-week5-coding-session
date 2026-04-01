@@ -5,10 +5,24 @@ import { NicknamePage, QuestionPage, ResultPage, StartPage } from "./components/
 import { quizConfig, quizQuestions, quizResults } from "./data/index.js";
 import { evaluateQuizResult } from "./domain/quiz-logic.js";
 
+function getSavedAnswer(answers, questionId) {
+  return answers.find((answer) => answer.questionId === questionId) || null;
+}
+
+function upsertAnswer(answers, nextAnswer) {
+  const index = answers.findIndex((answer) => answer.questionId === nextAnswer.questionId);
+  if (index === -1) return [...answers, nextAnswer];
+
+  const copied = [...answers];
+  copied[index] = nextAnswer;
+  return copied;
+}
+
 function App() {
   const [appState, setAppState] = useState({
     screen: "start",
     nickname: "",
+    isNicknameComposing: false,
     currentIndex: 0,
     answers: [],
   });
@@ -21,6 +35,11 @@ function App() {
       results: quizResults,
     });
   }, [appState.answers]);
+
+  const bestMatchResult = useMemo(() => {
+    if (!calculated.result?.bestMatch) return null;
+    return quizResults.find((item) => item.id === calculated.result.bestMatch) || null;
+  }, [calculated.result]);
 
   const startConfig = {
     ...quizConfig,
@@ -37,9 +56,28 @@ function App() {
 
   const handleNicknameInput = (event) => {
     const nextNickname = event?.target?.value ?? "";
+    setAppState((prev) => {
+      if (prev.isNicknameComposing) return prev;
+      return {
+        ...prev,
+        nickname: nextNickname,
+      };
+    });
+  };
+
+  const handleNicknameCompositionStart = () => {
+    setAppState((prev) => ({
+      ...prev,
+      isNicknameComposing: true,
+    }));
+  };
+
+  const handleNicknameCompositionEnd = (event) => {
+    const nextNickname = event?.target?.value ?? "";
     setAppState((prev) => ({
       ...prev,
       nickname: nextNickname,
+      isNicknameComposing: false,
     }));
   };
 
@@ -56,23 +94,42 @@ function App() {
   const handleChoiceSelect = (choice) => {
     setAppState((prev) => {
       const question = quizQuestions[prev.currentIndex];
-      const nextAnswers = [
-        ...prev.answers,
-        {
-          questionId: question.id,
-          axis: question.axis,
-          choiceId: choice.id,
-          score: choice.score,
-        },
-      ];
-
-      const isLastQuestion = prev.currentIndex >= quizQuestions.length - 1;
+      const nextAnswers = upsertAnswer(prev.answers, {
+        questionId: question.id,
+        axis: question.axis,
+        choiceId: choice.id,
+        score: choice.score,
+      });
+      const isLastQuestion = prev.currentIndex === quizQuestions.length - 1;
 
       return {
         ...prev,
         answers: nextAnswers,
-        screen: isLastQuestion ? "result" : prev.screen,
         currentIndex: isLastQuestion ? prev.currentIndex : prev.currentIndex + 1,
+      };
+    });
+  };
+
+  const handlePrevQuestion = () => {
+    setAppState((prev) => ({
+      ...prev,
+      currentIndex: Math.max(0, prev.currentIndex - 1),
+    }));
+  };
+
+  const handleNextQuestion = () => {
+    setAppState((prev) => ({
+      ...prev,
+      currentIndex: Math.min(quizQuestions.length - 1, prev.currentIndex + 1),
+    }));
+  };
+
+  const handleFinishQuiz = () => {
+    setAppState((prev) => {
+      if (prev.answers.length !== quizQuestions.length) return prev;
+      return {
+        ...prev,
+        screen: "result",
       };
     });
   };
@@ -81,6 +138,7 @@ function App() {
     setAppState({
       screen: "start",
       nickname: "",
+      isNicknameComposing: false,
       currentIndex: 0,
       answers: [],
     });
@@ -98,22 +156,37 @@ function App() {
       nickname: appState.nickname,
       onInputNickname: handleNicknameInput,
       onSubmitNickname: handleNicknameSubmit,
+      onNicknameCompositionStart: handleNicknameCompositionStart,
+      onNicknameCompositionEnd: handleNicknameCompositionEnd,
     });
   }
 
   if (appState.screen === "quiz") {
+    const currentQuestion = quizQuestions[appState.currentIndex];
+    const savedAnswer = getSavedAnswer(appState.answers, currentQuestion.id);
+
     return QuestionPage({
-      question: quizQuestions[appState.currentIndex],
+      question: currentQuestion,
       questionIndex: appState.currentIndex,
       totalQuestions: quizQuestions.length,
+      selectedChoiceId: savedAnswer?.choiceId || null,
+      answeredCount: appState.answers.length,
+      canGoPrev: appState.currentIndex > 0,
+      canGoNext: appState.currentIndex < quizQuestions.length - 1 && Boolean(savedAnswer),
+      canFinish: appState.answers.length === quizQuestions.length,
       onSelectChoice: handleChoiceSelect,
+      onPrevQuestion: handlePrevQuestion,
+      onNextQuestion: handleNextQuestion,
+      onFinishQuiz: handleFinishQuiz,
     });
   }
 
   return ResultPage({
     nickname: appState.nickname,
     result: calculated.result,
+    scores: calculated.scores,
     directions: calculated.directions,
+    bestMatchResult,
     onRestart: handleRestart,
   });
 }

@@ -26,7 +26,12 @@ export function patch(parentElement, oldVNode, newVNode, index = 0) {
   const currentDomNode = parentElement.childNodes[index];
 
   if (!oldVNode && newVNode) {
-    parentElement.appendChild(createElement(newVNode));
+    const nextDomNode = createElement(newVNode);
+    if (currentDomNode) {
+      parentElement.insertBefore(nextDomNode, currentDomNode);
+    } else {
+      parentElement.appendChild(nextDomNode);
+    }
     return;
   }
 

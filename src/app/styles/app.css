@@ -399,6 +399,11 @@ body::before {
   border: 1px solid rgba(24, 28, 38, 0.1);
 }
 
+.result-card {
+  padding-top: 26px;
+  padding-bottom: 28px;
+}
+
 .result-image {
   width: 100%;
   aspect-ratio: 1 / 1;
@@ -433,7 +438,7 @@ body::before {
 }
 
 .result-section-label {
-  margin: 0 0 8px;
+  margin: 0 0 14px;
   color: #7e6343;
   font-size: 11px;
   font-weight: 800;
@@ -447,14 +452,14 @@ body::before {
 }
 
 .result-animal {
-  margin: 0;
+  margin: 0 0 12px;
   text-align: center;
   font-size: 26px;
   font-weight: 700;
 }
 
 .result-title {
-  margin: 0 0 6px;
+  margin: 0 0 18px;
   text-align: center;
   font-size: 42px;
   font-weight: 800;
@@ -462,6 +467,7 @@ body::before {
 
 .result-description {
   margin: 0;
+  padding-top: 2px;
   text-align: center;
   color: #373a45;
   line-height: 1.6;

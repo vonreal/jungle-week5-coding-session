@@ -106,11 +106,12 @@ function ChoiceButton({ choice, onSelect, selected }) {
 function getAxisSpec(score, positiveLabel, negativeLabel) {
   const safeScore = Math.max(-4, Math.min(4, score || 0));
   const isPositive = safeScore > 0;
+  const intensity = Math.round((Math.abs(safeScore) / 4) * 100);
 
   return {
     direction: isPositive ? "positive" : "negative",
     label: isPositive ? positiveLabel : negativeLabel,
-    value: Math.round((Math.abs(safeScore) / 4) * 100),
+    value: Math.max(25, intensity),
     score: safeScore,
   };
 }

@@ -183,10 +183,10 @@ function RadarGraph({ scores, axes }) {
     AI: "tech-spec-bar-purple",
   };
   const axisTitles = {
-    CT: "CT 성향",
-    TL: "TL 성향",
-    PL: "PL 성향",
-    AI: "AI 성향",
+    CT: "협업 방식",
+    TL: "학습 방식",
+    PL: "진행 방식",
+    AI: "도구 활용 방식",
   };
 
   const axisItems = (axes || []).map((axis, index) => {
